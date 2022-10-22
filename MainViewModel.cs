@@ -10,7 +10,12 @@ using System.ComponentModel;
 
 namespace PolygonEditor
 {
-    public class MainViewModel: INotifyPropertyChanged
+    public enum States
+    {
+        PolygonAdd, Edit
+    }
+
+    public class MainViewModel : INotifyPropertyChanged
     {
         private WriteableBitmap _polygonBitmap;
         public WriteableBitmap PolygonBitmap
@@ -19,8 +24,36 @@ namespace PolygonEditor
             set { SetField(ref _polygonBitmap, value, "PolygonBitmap"); }
         }
 
+        string _state;
+        public string ActualState
+        {
+            get { return _state; }
+            set { SetField(ref _state, value, "ActualState"); }
+        }
+
+        States _st;
+        public States state
+        {
+            get { return _st; }
+            set
+            {
+                _st = value;
+                switch (value)
+                {
+                    case States.Edit:
+                        ActualState = "Tryb Edycji";
+                        break;
+                    case States.PolygonAdd:
+                        ActualState = "Tryb dodawania wielokąta";
+                        break;
+                }
+
+            }
+        }
+
         public MainViewModel()
         {
+            ActualState = "Dodaj pierwszy wielokąt";
         }
 
         #region Property Changed

@@ -4,19 +4,79 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PolygonEditor"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        mc:Ignorable="d" AllowDrop="True"
+        ResizeMode="NoResize" Name="mainWindow"
+        Title="MainWindow" Height="650" Width="1080">
+    <Window.Resources>
+        <local:VerticesConverter x:Key="VerticesConverter"/>
+        <local:EdgesConverter x:Key="EdgesConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="4*"/>
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" Background="LightBlue">
-            
+        <Grid Grid.Column="0" Background="DarkGray">
+            <DockPanel LastChildFill="False">
+                <TabControl DockPanel.Dock="Top" DataContext="{Binding ElementName=mainWindow, Path=currentPolygon}">
+                    <TabItem Header="Wierzchołki">
+                        <ListView ItemsSource="{Binding vertices, UpdateSourceTrigger=PropertyChanged}"
+                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource VerticesConverter}">
+                                                <Binding Path="VertexText" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="X" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="Y" UpdateSourceTrigger="PropertyChanged" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </TabItem>
+                    <TabItem Header="Krawędzie">
+                        <ListView ItemsSource="{Binding edges, UpdateSourceTrigger=PropertyChanged}"
+                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource EdgesConverter}">
+                                                <Binding Path="leftVertex.VertexText" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="rightVertex.VertexText" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="leftVertex.X" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="rightVertex.X" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="leftVertex.Y" UpdateSourceTrigger="PropertyChanged" />
+                                                <Binding Path="rightVertex.Y" UpdateSourceTrigger="PropertyChanged" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </TabItem>
+                    <TabItem Header="Relacje">
+
+                    </TabItem>
+                </TabControl>
+                <DockPanel DockPanel.Dock="Top" Margin="10,20,10,0">
+                    <Button Click="RemovePolygon_Click">Usuń wielokąt</Button>
+                </DockPanel>
+                <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="0,0,0,30">
+                    <TextBlock TextAlignment="Center" DockPanel.Dock="Bottom" Text="{Binding ActualState, Mode=TwoWay}" Foreground="Black"/>
+                </DockPanel>
+            </DockPanel>
         </Grid>
         <Canvas Name="canvas" Grid.Column="1" Background="LightGray"
+                PreviewMouseRightButtonDown="canvas_PreviewMouseRightButtonDown"
+                 MouseMove="canvas_MouseMove"
+                MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseLeftButtonDown="canvas_MouseLeftButtonDown"
                 VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <Image Name="canvasImage" Source="{Binding PolygonBitmap, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            <Image Name="canvasImage" Source="{Binding PolygonBitmap, Mode=TwoWay}"
+                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         </Canvas>
     </Grid>
 </Window>
