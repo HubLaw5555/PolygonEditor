@@ -29,12 +29,20 @@ namespace PolygonEditor
             set { SetField(ref _edgs, value, "edges"); }
         }
 
+        private ObservableCollection<PolygonEdge> _edRel;
+        public ObservableCollection<PolygonEdge> edgesWithRelation
+        {
+            get { return _edRel; }
+            set { SetField(ref _edRel, value, "edgesWithRelation"); }
+        }
+
         public bool isDone;
 
         public Polygon()
         {
             vertices = new ObservableCollection<Vertex>();
             edges = new ObservableCollection<PolygonEdge>();
+            edgesWithRelation = new ObservableCollection<PolygonEdge>();
             isDone = false;
         }
 
@@ -74,6 +82,29 @@ namespace PolygonEditor
             vertex.neighbours.next = next;
             next.neighbours.prev = vertex;
             RenumerateAllVertices(/*prev.neighbours.next*/vertex, vertex.VertexNumber, 0);
+        }
+
+        public void ChangeEdges(PolygonEdge from, PolygonEdge to)
+        {
+            edges.Insert(edges.IndexOf(from), to);
+            edges.Remove(from);
+
+            Vertex prev, next;
+            prev = next = null;
+
+            if(from.rightVertex.neighbours.edge == from)
+            {
+                prev = from.rightVertex;
+                next = from.leftVertex;
+            }
+            else
+            {
+                prev = from.leftVertex;
+                next = from.rightVertex;
+            }
+
+
+            prev.neighbours.edge = to;
         }
 
         public PolygonEdge AddEdge(Vertex l, Vertex r)

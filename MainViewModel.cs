@@ -12,7 +12,8 @@ namespace PolygonEditor
 {
     public enum States
     {
-        PolygonAdd, Edit
+        PolygonAdd, Edit,
+        OrthogonalOne, OrthogonalTwo
     }
 
     public class MainViewModel : INotifyPropertyChanged
@@ -45,6 +46,10 @@ namespace PolygonEditor
                         break;
                     case States.PolygonAdd:
                         ActualState = "Tryb dodawania wielokąta";
+                        break;
+                    case States.OrthogonalOne:
+                    case States.OrthogonalTwo:
+                        ActualState = "Tryb krawędzi prostopadłych\n Wybierz dwie krawędzie.";
                         break;
                 }
 

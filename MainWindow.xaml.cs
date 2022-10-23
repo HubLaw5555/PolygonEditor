@@ -67,11 +67,12 @@ namespace PolygonEditor
                          (int)((edge.leftVertex.Y + edge.rightVertex.Y) / 2));
                     Vertex prev = edge.leftVertex.neighbours.edge == edge ? edge.leftVertex : edge.rightVertex;
 
+                    edge.Substitute(new Edge(edge.leftVertex, edge.rightVertex));
                     currentPolygon.InsertVertex(v, prev);
                     RedrawCanvas();
                 };
-                menu.Items.Add(item);
 
+                menu.Items.Add(item);
                 menu.IsOpen = true;
                 //canvas.Children.Add(menu);
                 //Canvas.SetTop(menu, point.Y);
@@ -119,6 +120,8 @@ namespace PolygonEditor
 
         DragData VertexDragData = new DragData();
 
+        private PolygonEdge lastOrthoEdge = null;
+
         private PolygonEdge IsOnAnyPolygonEdge(Point point)
         {
             if (polygons == null) return null;
@@ -147,17 +150,31 @@ namespace PolygonEditor
 
         private void canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (model.state != States.Edit)
-            {
-                VertexDragData.movableObj = null;
-                return;
-            }
+            //if (model.state == States.PolygonAdd)
+            //{
+            //    VertexDragData.movableObj = null;
+            //    return;
+            //}
 
             PolygonEdge edge = null;
             Polygon polygon = null;
             Point point = e.GetPosition(this.canvas);
 
-            if (e.Source is VertexControl)
+            if(model.state == States.OrthogonalOne && (edge = IsOnAnyPolygonEdge(point)) != null)
+            {
+                lastOrthoEdge = new OrtogonalEdge(edge.leftVertex, edge.rightVertex);
+                edge.leftVertex.ownerPolygon.ChangeEdges(edge, lastOrthoEdge);
+                model.state = States.OrthogonalTwo;
+            }
+            else if(model.state == States.OrthogonalTwo && (edge = IsOnAnyPolygonEdge(point)) != null && lastOrthoEdge != null)
+            {
+                PolygonEdge ortho = new OrtogonalEdge(edge.leftVertex, edge.rightVertex, lastOrthoEdge);
+                (lastOrthoEdge as OrtogonalEdge).pairedEdge = ortho;
+                edge.leftVertex.ownerPolygon.ChangeEdges(edge, ortho);
+                model.state = States.Edit;
+                RedrawCanvas();
+            }
+            else if (model.state == States.Edit && e.Source is VertexControl)
             {
                 VertexDragData.movableObj = e.Source as VertexControl;
                 if ((VertexDragData.movableObj as VertexControl).vertexOwner.ownerPolygon.isDone != true)
@@ -169,7 +186,7 @@ namespace PolygonEditor
                 VertexDragData.from = point;
                 VertexDragData.to = point;
             }
-            else if ((edge = IsOnAnyPolygonEdge(point)) != null)
+            else if (model.state == States.Edit && (edge = IsOnAnyPolygonEdge(point)) != null)
             {
                 VertexDragData.movableObj = edge;
                 currentPolygon = edge.leftVertex.ownerPolygon;
@@ -182,7 +199,7 @@ namespace PolygonEditor
                 VertexDragData.from = point;
                 VertexDragData.to = point;
             }
-            else if ((polygon = IsOnPolygonCenter(point)) != null)
+            else if (model.state == States.Edit && (polygon = IsOnPolygonCenter(point)) != null)
             {
                 VertexDragData.movableObj = polygon;
                 currentPolygon = polygon;
@@ -318,14 +335,35 @@ namespace PolygonEditor
             RedrawCanvas();
         }
 
-        public void AddVertexLeft(Vertex v)
+        //public void AddVertexLeft(Vertex v)
+        //{
+        //    int index = v.ownerPolygon.vertices.IndexOf(v);
+        //}
+
+        //public void AddVertexRight(Vertex v)
+        //{
+        //    int index = v.ownerPolygon.vertices.IndexOf(v);
+        //}
+
+        private void ButtonRemoveRelation_Click(object sender, RoutedEventArgs e)
         {
-            int index = v.ownerPolygon.vertices.IndexOf(v);
+            if(model.state == States.Edit && currentPolygon != null)
+            {
+                PolygonEdge edge = ((Button)sender).DataContext as PolygonEdge;
+                if(edge != null)
+                {
+                    currentPolygon.edgesWithRelation.Remove(edge);
+                    currentPolygon.ChangeEdges(edge, new Edge(edge.leftVertex, edge.rightVertex));
+                }
+            }
         }
 
-        public void AddVertexRight(Vertex v)
+        private void OrthogonalStart_Click(object sender, RoutedEventArgs e)
         {
-            int index = v.ownerPolygon.vertices.IndexOf(v);
+            if(model.state == States.Edit)
+            {
+                model.state = States.OrthogonalOne;
+            }
         }
 
         #region Property Changed
@@ -343,5 +381,6 @@ namespace PolygonEditor
             return true;
         }
         #endregion
+
     }
 }

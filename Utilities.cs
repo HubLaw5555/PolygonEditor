@@ -109,6 +109,18 @@ namespace PolygonEditor
             line.C = B * pt.X - A * pt.Y;
             return line;
         }
+
+        public Vector GetLineDirection()
+        {
+            if(B == 0)
+            {
+                return new Vector(0, 1);
+            }
+            Vector v = new Vector(1, 1);
+            v.Y *= -A / B;
+            v /= v.Length;
+            return v;
+        }
     }
 
     public static class Geometry
@@ -121,6 +133,54 @@ namespace PolygonEditor
         public static double DistSquared(Point l, Point r)
         {
             return Math.Pow((l.X - r.X), 2) + Math.Pow((r.Y - l.Y), 2);
+        }
+
+        public static bool IsOnLine(Point A, Point B, Point C, double tolerance)
+        {
+            double minX = Math.Min(A.X, B.X) - tolerance;
+            double maxX = Math.Max(A.X, B.X) + tolerance;
+            double minY = Math.Min(A.Y, B.Y) - tolerance;
+            double maxY = Math.Max(A.Y, B.Y) + tolerance;
+
+            //Check C is within the bounds of the line
+            if (C.X >= maxX || C.X <= minX || C.Y <= minY || C.Y >= maxY)
+            {
+                return false;
+            }
+
+            // Check for when AB is vertical
+            if (A.X == B.X)
+            {
+                if (Math.Abs(A.X - C.X) >= tolerance)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            // Check for when AB is horizontal
+            if (A.Y == B.Y)
+            {
+                if (Math.Abs(A.Y - C.Y) >= tolerance)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+
+            // Check istance of the point form the line
+            double distFromLine = Math.Abs(((B.X - A.X) * (A.Y - C.Y)) - ((A.X - C.X) * (B.Y - A.Y)))
+                / Math.Sqrt((B.X - A.X) * (B.X - A.X) + (B.Y - A.Y) * (B.Y - A.Y));
+
+            if (distFromLine >= tolerance)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 
@@ -379,6 +439,24 @@ namespace PolygonEditor
             string len = string.Format("{0:00.##}", Math.Sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
             //string len = string.Format("{0:0.##}", Math.Sqrt(Math.Pow((l.X - r.X), 2) + Math.Pow((l.Y - r.Y), 2)));
             return $"|{l} {r}| =  {len}";
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new Exception();
+        }
+    }
+
+    public class RelationConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            PolygonEdge edge = (PolygonEdge)values[0];
+            if (edge is Edge) return null;
+
+            string communicat = edge is FixedLenghtEdge ? "FIXED LENGTH" : "ORTHOGONAL";
+
+            return $"|{edge.leftVertex.VertexText}  {edge.rightVertex.VertexText}|   " + communicat;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)

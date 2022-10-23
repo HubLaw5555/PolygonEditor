@@ -69,7 +69,9 @@ namespace PolygonEditor
         
 
         //public abstract void VertexMovesEdge(Vertex v, /*Vertex source*/List<Vertex> vs, Point from, Point to);
-        public abstract void VertexMovesEdge(Vertex v /*Vertex source List<Vertex> vs,*/);
+        public abstract void CorrectVertexOnEdge(Vertex v /*Vertex source List<Vertex> vs,*/);
+
+        public abstract void Substitute(PolygonEdge edge);
 
         //public PolygonEdge IsPointOnEdge(Point pos)
         //{
@@ -94,57 +96,11 @@ namespace PolygonEditor
 
         public PolygonEdge IsPointOnEdge(Point pos)
         {
-            bool isonEdge = IsOnLine(leftVertex.Position, rightVertex.Position, pos, 2);
+            bool isonEdge = Geometry.IsOnLine(leftVertex.Position, rightVertex.Position, pos, 2);
             return isonEdge ? this : null;
         }
 
-        private static bool IsOnLine(Point A, Point B, Point C, double tolerance)
-        {
-            double minX = Math.Min(A.X, B.X) - tolerance;
-            double maxX = Math.Max(A.X, B.X) + tolerance;
-            double minY = Math.Min(A.Y, B.Y) - tolerance;
-            double maxY = Math.Max(A.Y, B.Y) + tolerance;
-
-            //Check C is within the bounds of the line
-            if (C.X >= maxX || C.X <= minX || C.Y <= minY || C.Y >= maxY)
-            {
-                return false;
-            }
-
-            // Check for when AB is vertical
-            if (A.X == B.X)
-            {
-                if (Math.Abs(A.X - C.X) >= tolerance)
-                {
-                    return false;
-                }
-                return true;
-            }
-
-            // Check for when AB is horizontal
-            if (A.Y == B.Y)
-            {
-                if (Math.Abs(A.Y - C.Y) >= tolerance)
-                {
-                    return false;
-                }
-                return true;
-            }
-
-
-            // Check istance of the point form the line
-            double distFromLine = Math.Abs(((B.X - A.X) * (A.Y - C.Y)) - ((A.X - C.X) * (B.Y - A.Y))) 
-                / Math.Sqrt((B.X - A.X) * (B.X - A.X) + (B.Y - A.Y) * (B.Y - A.Y));
-
-            if (distFromLine >= tolerance)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
+        
 
 
         #region Property Changed
@@ -173,9 +129,14 @@ namespace PolygonEditor
             DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, Colors.White);
         }
 
-        public override void VertexMovesEdge(Vertex v)
+        public override void CorrectVertexOnEdge(Vertex v)
         {
             return;
+        }
+
+        public override void Substitute(PolygonEdge edge)
+        {
+            this.leftVertex.ownerPolygon.ChangeEdges(this, edge);
         }
 
         //public override void VertexMovesEdge(Vertex v, /*Vertex source*/ List<Vertex> vs, Point from, Point to)
@@ -220,19 +181,20 @@ namespace PolygonEditor
         public FixedLenghtEdge(Vertex l, Vertex r) : base(l, r)
         {
             length = Math.Sqrt(Math.Pow((l.X - r.X), 2) + Math.Pow((r.Y - l.Y), 2));
+            l.ownerPolygon.edgesWithRelation.Add(this);
             DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, Colors.Red);
         }
 
         public FixedLenghtEdge(PolygonEdge e) : base(e.leftVertex, e.rightVertex) { }
 
-        public override void VertexMovesEdge(Vertex v)
+        public override void CorrectVertexOnEdge(Vertex v)
         {
             ////   nowy         zrobiony
             ////   v ---------> prev
             ////   actualPos    from -> to
             ////
             ///
-            Vertex prev = v.neighbours.prev; // zrobiony
+            Vertex prev = this.rightVertex == v ? this.leftVertex : this.rightVertex;//v.neighbours.prev; // zrobiony
             Point to = new Point(prev.X, prev.Y); // nowa pozycja zrobionego
 
             Point actualPos = new Point(v.X, v.Y);
@@ -244,6 +206,11 @@ namespace PolygonEditor
             actualPos += shift; //  przesuwanie pozycji aktualnego
             v.X = (int)actualPos.X;
             v.Y = (int)actualPos.Y;
+        }
+
+        public override void Substitute(PolygonEdge edge)
+        {
+            this.leftVertex.ownerPolygon.ChangeEdges(this, edge);
         }
 
         //public override void VertexMovesEdge(Vertex v, /*Vertex source*/List<Vertex> vs, Point from, Point to)
@@ -309,11 +276,62 @@ namespace PolygonEditor
 
     public class OrtogonalEdge : PolygonEdge
     {
-        public OrtogonalEdge(PolygonEdge e) : base(e.leftVertex, e.rightVertex) { }
+        public Color color = Colors.Blue;
 
-        public override void VertexMovesEdge(Vertex v)
+        public PolygonEdge pairedEdge;
+
+        public OrtogonalEdge(Vertex left, Vertex right, PolygonEdge pair = null): base(left, right)
         {
+            left.ownerPolygon.edgesWithRelation.Add(this);
+            pairedEdge = pair;
+
+            if (pairedEdge != null)
+            {
+                CorrectVertexOnEdge(right);
+            }
+
+            DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, Colors.Blue);
+        }
+        //public OrtogonalEdge(PolygonEdge e) : base(e.leftVertex, e.rightVertex) { }
+
+        public override void CorrectVertexOnEdge(Vertex v)
+        {
+
+            //Vertex prev = this.rightVertex == v ? this.leftVertex : this.rightVertex;
+            //Point center = new Point((pairedEdge.leftVertex.X + pairedEdge.rightVertex.X) / 2, 
+            //    (pairedEdge.leftVertex.Y + pairedEdge.rightVertex.Y) / 2);
+            //Vector vec = new Vector(v.Position.X - center.X, v.Position.Y - center.Y);
+            //vec /= vec.Length; // wektor jednostkowy w kierunku od krawędzi do punktu
+
+            //Vector x = new Vector(v.X - prev.X, v.Y - prev.Y);
+            //Vector shift = ((x * vec) / (vec * vec)) * vec; // rzut na prostą
+
+            //Point actualPos = prev.Position;
+            //actualPos += shift;
+
+            //v.X = (int)actualPos.X;
+            //v.Y = (int)actualPos.Y;
+
+            Vertex prev = this.rightVertex == v ? this.leftVertex : this.rightVertex;
+            Line line = new Line(pairedEdge.leftVertex.Position, pairedEdge.rightVertex.Position);
+
+            Line orthoLine = line.OrthogonalOnPoint(prev.Position);
+            Vector vec = orthoLine.GetLineDirection(); //  jesli tu jest line, to rownolegle by byly
+            Vector x = new Vector(v.X - prev.X, v.Y - prev.Y);
+            Vector shift = ((x * vec) / (vec * vec)) * vec; // rzut na prostą
+
+            Point actualPos = prev.Position;
+            actualPos += shift;
+
+            v.X = (int)actualPos.X;
+            v.Y = (int)actualPos.Y;
             return;
+        }
+
+        public override void Substitute(PolygonEdge edge)
+        {
+            this.leftVertex.ownerPolygon.ChangeEdges(this, edge);
+            pairedEdge.leftVertex.ownerPolygon.ChangeEdges(pairedEdge, new Edge(pairedEdge.leftVertex, pairedEdge.rightVertex));
         }
 
         //public override void VertexMovesEdge(Vertex v, /*Vertex source*/List<Vertex> vs, Point from, Point to)

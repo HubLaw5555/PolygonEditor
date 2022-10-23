@@ -22,14 +22,6 @@ namespace PolygonEditor
     public partial class VertexControl : UserControl, INotifyPropertyChanged
     {
         public Vertex vertexOwner;
-        //public PolygonEdge edgeOwner;
-
-        //private string _vrtnr;
-        //public string VertexNumber
-        //{
-        //    get { return _vrtnr; }
-        //    set { SetField(ref _vrtnr, value, "VertexNumber"); }
-        //}
 
         public VertexControl(Vertex vertex)
         {
@@ -50,19 +42,19 @@ namespace PolygonEditor
             (System.Windows.Application.Current.MainWindow as MainWindow).RemoveVertex(vertexOwner);
         }
         
-        private void AddVertexRight(object sender, RoutedEventArgs args)
-        {
-            if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
+        //private void AddVertexRight(object sender, RoutedEventArgs args)
+        //{
+        //    if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
 
-            (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexRight(vertexOwner);
-        }
+        //    (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexRight(vertexOwner);
+        //}
         
-        private void AddVertexLeft(object sender, RoutedEventArgs args)
-        {
-            if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
+        //private void AddVertexLeft(object sender, RoutedEventArgs args)
+        //{
+        //    if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
 
-            (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexLeft(vertexOwner);
-        }
+        //    (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexLeft(vertexOwner);
+        //}
 
         ContextMenu BuildMenu()
         {
@@ -72,17 +64,17 @@ namespace PolygonEditor
             mia.Header = "Usuń wierzchołek";
             mia.Click += RemoveFromPolygon;
 
-            MenuItem mib = new MenuItem();
-            mib.Header = "Dodaj wierzchołek po prawej";
-            mib.Click += AddVertexRight;
+            //MenuItem mib = new MenuItem();
+            //mib.Header = "Dodaj wierzchołek po prawej";
+            //mib.Click += AddVertexRight;
 
-            MenuItem mic = new MenuItem();
-            mic.Header = "Dodaj wierzchołek po lewej";
-            mic.Click += AddVertexLeft;
+            //MenuItem mic = new MenuItem();
+            //mic.Header = "Dodaj wierzchołek po lewej";
+            //mic.Click += AddVertexLeft;
 
             theMenu.Items.Add(mia);
-            theMenu.Items.Add(mib);
-            theMenu.Items.Add(mic);
+            //theMenu.Items.Add(mib);
+            //theMenu.Items.Add(mic);
             return theMenu;
         }
 

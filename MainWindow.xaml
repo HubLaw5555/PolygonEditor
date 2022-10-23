@@ -10,6 +10,10 @@
     <Window.Resources>
         <local:VerticesConverter x:Key="VerticesConverter"/>
         <local:EdgesConverter x:Key="EdgesConverter"/>
+        <local:RelationConverter x:Key="RelationConverter"/>
+        <Style x:Key="myHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -59,11 +63,60 @@
                         </ListView>
                     </TabItem>
                     <TabItem Header="Relacje">
+                        <StackPanel>
 
+                            <ListView ItemsSource="{Binding edgesWithRelation, UpdateSourceTrigger=PropertyChanged}"
+                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                                <ListView.View>
+                                    <GridView ColumnHeaderContainerStyle="{StaticResource myHeaderStyle}">
+                                        <GridViewColumn Width="140">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <TextBlock.Text>
+                                                            <MultiBinding Converter="{StaticResource RelationConverter}">
+                                                                <Binding Path="." UpdateSourceTrigger="PropertyChanged"/>
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn>
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Click="ButtonRemoveRelation_Click">Usuń</Button>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                                <!--<ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource RelationConverter}">
+                                                    <Binding Path="." UpdateSourceTrigger="PropertyChanged"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>-->
+                            </ListView>
+                            <DockPanel LastChildFill="False" Margin="2,10,2,0">
+                                <Button>Dodaj relacje ORTH:</Button>
+                                <TextBox Name="TextVertex4" DockPanel.Dock="Right" Width="17"/>
+                                <TextBox Name="TextVertex3" DockPanel.Dock="Right" Width="17" />
+                                <TextBlock Margin="5,0,5,0" DockPanel.Dock="Right">,</TextBlock>
+                                <TextBox Name="TextVertex2" DockPanel.Dock="Right" Width="17"/>
+                                <TextBox Name="TextVertex1" DockPanel.Dock="Right" Width="17"/>
+                            </DockPanel>
+                        </StackPanel>
                     </TabItem>
                 </TabControl>
                 <DockPanel DockPanel.Dock="Top" Margin="10,20,10,0">
-                    <Button Click="RemovePolygon_Click">Usuń wielokąt</Button>
+                    <Button DockPanel.Dock="Top" Click="RemovePolygon_Click">Usuń wielokąt</Button>
+                    <Button DockPanel.Dock="Top" Click="OrthogonalStart_Click" Margin="0,5,0,0" >Dodaj relacje ORTH</Button>
                 </DockPanel>
                 <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="0,0,0,30">
                     <TextBlock TextAlignment="Center" DockPanel.Dock="Bottom" Text="{Binding ActualState, Mode=TwoWay}" Foreground="Black"/>

@@ -89,24 +89,32 @@ namespace PolygonEditor
             control.SetNumber(VertexNumber);
         }
 
-        //public void SetEdge(PolygonEdge edge)
-        //{
-        //    control.edgeOwner = edge;
-        //}
-
-
-
         public void MoveVertex(Point to)
         {
             X = (int)to.X;
             Y = (int)to.Y;
             ownerPolygon.CalculateBalancePoint();
+            //Vertex next = this.neighbours.next;
+            //while(next != this)
+            //{
+            //    next.neighbours.prev.neighbours.edge.VertexMovesEdge(next);
+            //    next.neighbours.edge.VertexMovesEdge(next);
+            //    next = next.neighbours.next;
+            //}
+
+            List<Vertex> moved = new List<Vertex>();
+            moved.Add(this);
             Vertex next = this.neighbours.next;
-            while(next != this)
+            PolygonEdge edge = this.neighbours.edge;
+            
+            while(moved.Count < ownerPolygon.vertices.Count)
             {
-                next.neighbours.prev.neighbours.edge.VertexMovesEdge(next);
-                next.neighbours.edge.VertexMovesEdge(next);
-                next = next.neighbours.next;
+                edge.CorrectVertexOnEdge(next);
+
+                moved.Add(next);
+                next = moved.Count % 2 == 0 ? moved[moved.Count - 2].neighbours.prev :
+                    moved[moved.Count - 2].neighbours.next;
+                edge = moved.Count % 2 == 0 ? next.neighbours.edge : next.neighbours.prev.neighbours.edge;
             }
 
             //if(!(this.neighbours.edge is Edge))
