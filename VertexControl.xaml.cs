@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.ComponentModel;
 
 namespace PolygonEditor
@@ -42,18 +32,6 @@ namespace PolygonEditor
             (System.Windows.Application.Current.MainWindow as MainWindow).RemoveVertex(vertexOwner);
         }
 
-        ContextMenu BuildMenu()
-        {
-            ContextMenu theMenu = new ContextMenu();
-
-            MenuItem mia = new MenuItem();
-            mia.Header = "Usuń wierzchołek";
-            mia.Click += RemoveFromPolygon;
-
-            theMenu.Items.Add(mia);
-            return theMenu;
-        }
-
         private void vertexCntrl_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             MainWindow window = System.Windows.Application.Current.MainWindow as MainWindow;
@@ -67,8 +45,23 @@ namespace PolygonEditor
 
         private void UserControl_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            this.ContextMenu = BuildMenu();
-            this.ContextMenu.IsOpen = true;
+            if((System.Windows.Application.Current.MainWindow as MainWindow).model.state == States.Edit)
+            {
+                this.ContextMenu = BuildMenu();
+                this.ContextMenu.IsOpen = true;
+            }
+        }
+
+        private ContextMenu BuildMenu()
+        {
+            ContextMenu theMenu = new ContextMenu();
+
+            MenuItem mia = new MenuItem();
+            mia.Header = "Usuń wierzchołek";
+            mia.Click += RemoveFromPolygon;
+
+            theMenu.Items.Add(mia);
+            return theMenu;
         }
 
         #region Property Changed

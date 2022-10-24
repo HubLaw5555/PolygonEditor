@@ -1,12 +1,7 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 
@@ -80,7 +75,6 @@ namespace PolygonEditor
             vertex.neighbours.edge = e;
             vertex.neighbours.next = next;
             next.neighbours.prev = vertex;
-            //edge.RemoveRelationsIfExists(false);
             RenumerateAllVertices(vertex, vertex.VertexNumber, 0);
         }
 

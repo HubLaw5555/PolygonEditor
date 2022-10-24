@@ -3,14 +3,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 
 namespace PolygonEditor
 {
-    public abstract class PolygonEdge: INotifyPropertyChanged
+    public abstract class PolygonEdge : INotifyPropertyChanged
     {
         private Vertex _l, _r;
         public Vertex leftVertex
@@ -38,7 +35,7 @@ namespace PolygonEditor
         {
             (Application.Current.MainWindow as MainWindow).DrawLine(x1, y1, x2, y2, size, color);
         }
-        
+
         protected void DrawEdge(Color color)
         {
             DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, color);
@@ -46,24 +43,24 @@ namespace PolygonEditor
 
         public void ActualiseVisualPosition()
         {
-            if(visual != null && leftVertex != null && rightVertex != null)
+            if (visual != null && leftVertex != null && rightVertex != null)
             {
                 Canvas.SetTop(visual, (leftVertex.Y + rightVertex.Y) / 2 + 5);
                 Canvas.SetLeft(visual, (leftVertex.X + rightVertex.X) / 2 + 5);
             }
         }
 
-        public abstract void RedrawLine();
-        
-        public abstract void CorrectVertexOnEdge(Vertex v);
-
-        public abstract void Substitute(PolygonEdge edge);
-
         public PolygonEdge IsPointOnEdge(Point pos)
         {
             bool isonEdge = Geometry.IsOnLine(leftVertex.Position, rightVertex.Position, pos, 2);
             return isonEdge ? this : null;
         }
+
+        public abstract void RedrawLine();
+
+        public abstract void CorrectVertexOnEdge(Vertex v);
+
+        public abstract void Substitute(PolygonEdge edge);
 
         public abstract void RemoveVisualSymbolIfExists();
 
@@ -90,7 +87,7 @@ namespace PolygonEditor
     {
         public Color color = Colors.White;
 
-        public Edge(Vertex l, Vertex r) : base(l, r) 
+        public Edge(Vertex l, Vertex r) : base(l, r)
         {
             DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, Colors.White);
         }
@@ -148,7 +145,7 @@ namespace PolygonEditor
 
         public override void RemoveVisualSymbolIfExists()
         {
-            if(visual != null && (Application.Current.MainWindow as MainWindow).canvas.Children.Contains(visual))
+            if (visual != null && (Application.Current.MainWindow as MainWindow).canvas.Children.Contains(visual))
             {
                 (Application.Current.MainWindow as MainWindow).canvas.Children.Remove(visual);
                 visual = null;
@@ -159,32 +156,23 @@ namespace PolygonEditor
         {
             this.leftVertex.ownerPolygon.edgesWithRelation.Remove(this);
             this.RemoveVisualSymbolIfExists();
-            //if(makeChanges)
-            //{
-                this.leftVertex.ownerPolygon.ChangeEdges(this, new Edge(this.leftVertex, this.rightVertex));
-            //}
+            this.leftVertex.ownerPolygon.ChangeEdges(this, new Edge(this.leftVertex, this.rightVertex));
         }
-
-        public FixedLenghtEdge(PolygonEdge e) : base(e.leftVertex, e.rightVertex) { }
 
         public override void CorrectVertexOnEdge(Vertex v)
         {
-            ////   nowy         zrobiony
-            ////   v ---------> prev
-            ////   actualPos    from -> to
-            Vertex prev = this.rightVertex == v ? this.leftVertex : this.rightVertex;//v.neighbours.prev; // zrobiony
-            Point to = new Point(prev.X, prev.Y); // nowa pozycja zrobionego
+            Vertex prev = this.rightVertex == v ? this.leftVertex : this.rightVertex;
+            Point to = new Point(prev.X, prev.Y);
 
             Point actualPos = new Point(v.X, v.Y);
 
-            double d = Geometry.Distance(actualPos, to); // odleglosc od obecnego do nowej pozycji zrobionego
-            Vector shift = new Vector(to.X - actualPos.X, to.Y - actualPos.Y); // wektor od pozycji obecnego do nowej zrobionego
+            double d = Geometry.Distance(actualPos, to); 
+            Vector shift = new Vector(to.X - actualPos.X, to.Y - actualPos.Y);
             shift *= (d - length) / d;
 
-            actualPos += shift; //  przesuwanie pozycji aktualnego
+            actualPos += shift;
             v.X = (int)actualPos.X;
             v.Y = (int)actualPos.Y;
-            //ActualiseVisualPosition();
         }
 
         public override void Substitute(PolygonEdge edge)
@@ -208,7 +196,7 @@ namespace PolygonEditor
         private static int _unq = 2;
         public int UniqueNr;
 
-        public OrtogonalEdge(Vertex left, Vertex right, PolygonEdge pair = null): base(left, right)
+        public OrtogonalEdge(Vertex left, Vertex right, PolygonEdge pair = null) : base(left, right)
         {
             left.ownerPolygon.edgesWithRelation.Add(this);
             pairedEdge = pair;
@@ -216,10 +204,9 @@ namespace PolygonEditor
             if (pairedEdge != null)
             {
                 CorrectVertexOnEdge(right);
-                //(pairedEdge as OrtogonalEdge).UniqueNr = UniqueNr;
             }
 
-            UniqueNr = (_unq++)/ 2;
+            UniqueNr = (_unq++) / 2;
 
             DrawLine(leftVertex.X, leftVertex.Y, rightVertex.X, rightVertex.Y, 2, Colors.Blue);
             GenerateSymbol();
@@ -229,14 +216,14 @@ namespace PolygonEditor
         private void GenerateSymbol()
         {
             visual = new VisualControl();
-            visual.Text = "⟂"+UniqueNr;
+            visual.Text = "⟂" + UniqueNr;
             visual.Color = Brushes.Blue;
             visual.TextSize = 15;
             visual.Height = visual.Width = 20;
             (Application.Current.MainWindow as MainWindow).canvas.Children.Add(visual);
         }
 
-        
+
 
         public override void RemoveVisualSymbolIfExists()
         {
@@ -250,21 +237,15 @@ namespace PolygonEditor
         {
             this.leftVertex.ownerPolygon.edgesWithRelation.Remove(this);
             this.RemoveVisualSymbolIfExists();
-            //if (makeChanges)
-            //{
-                this.leftVertex.ownerPolygon.ChangeEdges(this, new Edge(this.leftVertex, this.rightVertex));
-            //}
+            this.leftVertex.ownerPolygon.ChangeEdges(this, new Edge(this.leftVertex, this.rightVertex));
 
             if (simple != true)
             {
                 pairedEdge.leftVertex.ownerPolygon.edgesWithRelation.Remove(pairedEdge);
                 pairedEdge.RemoveVisualSymbolIfExists();
-                //if (makeChanges /*== false || this.leftVertex == pairedEdge.rightVertex || this.rightVertex == pairedEdge.leftVertex)*/)
-                //{
                 pairedEdge.leftVertex.ownerPolygon.ChangeEdges(pairedEdge, new Edge(pairedEdge.leftVertex, pairedEdge.rightVertex));
-                //}
             }
-            
+
         }
 
         public override void CorrectVertexOnEdge(Vertex v)
@@ -273,9 +254,9 @@ namespace PolygonEditor
             Line line = new Line(pairedEdge.leftVertex.Position, pairedEdge.rightVertex.Position);
 
             Line orthoLine = line.OrthogonalOnPoint(prev.Position);
-            Vector vec = orthoLine.GetLineDirection(); //  jesli tu jest line, to rownolegle by byly
+            Vector vec = orthoLine.GetLineDirection();
             Vector x = new Vector(v.X - prev.X, v.Y - prev.Y);
-            Vector shift = ((x * vec) / (vec * vec)) * vec; // rzut na prostą
+            Vector shift = ((x * vec) / (vec * vec)) * vec;
 
             Point actualPos = prev.Position;
             actualPos += shift;

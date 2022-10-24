@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PolygonEditor"
         mc:Ignorable="d" AllowDrop="True"
         ResizeMode="NoResize" Name="mainWindow"
-        Title="MainWindow" Height="650" Width="1080">
+        Title="PolygonEditor" Height="650" Width="1080">
     <Window.Resources>
         <local:VerticesConverter x:Key="VerticesConverter"/>
         <local:EdgesConverter x:Key="EdgesConverter"/>
@@ -128,7 +128,7 @@
             </DockPanel>
         </Grid>
         <Canvas Name="canvas" Grid.Column="1" Background="LightGray"
-                PreviewMouseRightButtonDown="canvas_PreviewMouseRightButtonDown"
+                MouseRightButtonDown="canvas_MouseRightButtonDown"
                  MouseMove="canvas_MouseMove"
                 MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseLeftButtonDown="canvas_MouseLeftButtonDown"
                 VerticalAlignment="Stretch" HorizontalAlignment="Stretch">

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 
 namespace PolygonEditor
@@ -106,11 +102,16 @@ namespace PolygonEditor
             control.SetNumber(VertexNumber);
         }
 
-        public void MoveVertex(Point to)
+        public void SimpleMoveVertex(Point to)
         {
             X = (int)to.X;
             Y = (int)to.Y;
             ownerPolygon.CalculateBalancePoint();
+        }
+
+        public void MoveVertex(Point to)
+        {
+            SimpleMoveVertex(to);
 
             List<Vertex> moved = new List<Vertex>();
             moved.Add(this);

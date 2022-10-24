@@ -1,13 +1,7 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Shapes;
 
 namespace PolygonEditor
 {
@@ -26,7 +20,7 @@ namespace PolygonEditor
 
         public WriteableBitmap Clear(WriteableBitmap bitmap, int width, int height, Color color)
         {
-            return CanvasExtender.CreateWritableBitmap(width, height, color);
+            return WriteableBitmapExtender.CreateWritableBitmap(width, height, color);
         }
     }
 
