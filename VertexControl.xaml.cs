@@ -41,20 +41,6 @@ namespace PolygonEditor
 
             (System.Windows.Application.Current.MainWindow as MainWindow).RemoveVertex(vertexOwner);
         }
-        
-        //private void AddVertexRight(object sender, RoutedEventArgs args)
-        //{
-        //    if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
-
-        //    (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexRight(vertexOwner);
-        //}
-        
-        //private void AddVertexLeft(object sender, RoutedEventArgs args)
-        //{
-        //    if (vertexOwner.ownerPolygon.vertices.Count < 4) return;
-
-        //    (System.Windows.Application.Current.MainWindow as MainWindow).AddVertexLeft(vertexOwner);
-        //}
 
         ContextMenu BuildMenu()
         {
@@ -64,17 +50,7 @@ namespace PolygonEditor
             mia.Header = "Usuń wierzchołek";
             mia.Click += RemoveFromPolygon;
 
-            //MenuItem mib = new MenuItem();
-            //mib.Header = "Dodaj wierzchołek po prawej";
-            //mib.Click += AddVertexRight;
-
-            //MenuItem mic = new MenuItem();
-            //mic.Header = "Dodaj wierzchołek po lewej";
-            //mic.Click += AddVertexLeft;
-
             theMenu.Items.Add(mia);
-            //theMenu.Items.Add(mib);
-            //theMenu.Items.Add(mic);
             return theMenu;
         }
 

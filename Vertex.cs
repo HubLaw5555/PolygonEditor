@@ -24,10 +24,19 @@ namespace PolygonEditor
             get { return _x; }
             set
             {
+                if(value < 0 || value > (Application.Current.MainWindow as MainWindow).canvas.ActualWidth)
+                {
+                    return;
+                }
                 SetField(ref _x, value, "X");
                 if (window.canvas.Children.Contains(control))
                 {
                     Canvas.SetLeft(control , value - control.Width/2);
+                }
+                if(this.ownerPolygon != null && this.ownerPolygon.isDone)
+                {
+                    this.neighbours.edge.ActualiseVisualPosition();
+                    this.neighbours.prev.neighbours.edge.ActualiseVisualPosition();
                 }
             }
         }
@@ -38,10 +47,19 @@ namespace PolygonEditor
             get { return _y; }
             set
             {
+                if (value < 0 || value > (Application.Current.MainWindow as MainWindow).canvas.ActualHeight)
+                {
+                    return;
+                }
                 SetField(ref _y, value, "Y");
                 if (window.canvas.Children.Contains(control))
                 {
                     Canvas.SetTop(control, value - control.Height/2);
+                }
+                if (this.ownerPolygon != null && this.ownerPolygon.isDone)
+                {
+                    this.neighbours.edge.ActualiseVisualPosition();
+                    this.neighbours.prev.neighbours.edge.ActualiseVisualPosition();
                 }
             }
         }
@@ -79,7 +97,6 @@ namespace PolygonEditor
             window.canvas.Children.Add(control);
             X = x;
             Y = y;
-            //control.VertexNumber = LetterConverter.Convert(VertexNumber);
         }
 
         public Vertex(Polygon polygon, int x, int y) : this(x, y)
@@ -94,13 +111,6 @@ namespace PolygonEditor
             X = (int)to.X;
             Y = (int)to.Y;
             ownerPolygon.CalculateBalancePoint();
-            //Vertex next = this.neighbours.next;
-            //while(next != this)
-            //{
-            //    next.neighbours.prev.neighbours.edge.VertexMovesEdge(next);
-            //    next.neighbours.edge.VertexMovesEdge(next);
-            //    next = next.neighbours.next;
-            //}
 
             List<Vertex> moved = new List<Vertex>();
             moved.Add(this);
@@ -116,27 +126,6 @@ namespace PolygonEditor
                     moved[moved.Count - 2].neighbours.next;
                 edge = moved.Count % 2 == 0 ? next.neighbours.edge : next.neighbours.prev.neighbours.edge;
             }
-
-            //if(!(this.neighbours.edge is Edge))
-            //{
-            //    this.neighbours.edge.VertexMovesEdge(this, /*source*/vs, pos, to);
-            //}
-            
-            //if(!(this.neighbours.prev.neighbours.edge is Edge))
-            //{
-            //    this.neighbours.prev.neighbours.edge.VertexMovesEdge(this, /*source*/vs, pos, to);
-            //}
-
-            //if (newPos != null)
-            //{
-            //    Vertex v = this.neighbours.next;
-            //    v.MoveVertex(vs, (Point)newPos);
-            //}
-            //count--;
-            //this.neighbours.prev.neighbours.edge.VertexMovesEdge(this, /*source*/ref count, Position, to);
-            
-            //this.neighbours.SameEdge.VertexMovesEdge(this, source, Position, to);
-            //this.neighbours.NextEdge.VertexMovesEdge(this, source, Position, to);
         }
 
         public Vertex(Point pt) : this((int)pt.X, (int)pt.Y) { }

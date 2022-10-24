@@ -56,7 +56,6 @@ namespace PolygonEditor
                 vertices.Last().neighbours.prev = vertex;
                 PolygonEdge e = AddEdge(vertices.Last(), vertex);
                 vertex.neighbours.edge = e;
-                //vertices.Last().SetEdge(e);
             }
             vertex.AddOwner(this);
             vertices.Add(vertex);
@@ -81,13 +80,17 @@ namespace PolygonEditor
             vertex.neighbours.edge = e;
             vertex.neighbours.next = next;
             next.neighbours.prev = vertex;
-            RenumerateAllVertices(/*prev.neighbours.next*/vertex, vertex.VertexNumber, 0);
+            //edge.RemoveRelationsIfExists(false);
+            RenumerateAllVertices(vertex, vertex.VertexNumber, 0);
         }
 
         public void ChangeEdges(PolygonEdge from, PolygonEdge to)
         {
-            edges.Insert(edges.IndexOf(from), to);
-            edges.Remove(from);
+            if (edges.Contains(from))
+            {
+                edges.Insert(edges.IndexOf(from), to);
+                edges.Remove(from);
+            }
 
             Vertex prev, next;
             prev = next = null;
@@ -110,9 +113,17 @@ namespace PolygonEditor
         public PolygonEdge AddEdge(Vertex l, Vertex r)
         {
             PolygonEdge edge = null;
-            if (Keyboard.IsKeyDown(Key.LeftShift))
+            if (Keyboard.IsKeyDown(Key.LeftShift) )
             {
-                edge = new FixedLenghtEdge(l, r);
+                if( this.edges.Count == 0 || this.edges.Count % 2 == 1 || r != edges.First().leftVertex || edges.Where(e => e is Edge).ToList().Count > 0)
+                {
+                    edge = new FixedLenghtEdge(l, r);
+                }
+                else
+                {
+                    MessageBox.Show("Nie można dodać krawędzi o ustalonej długości. Dodano zwykłą krawędź", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    edge = new Edge(l, r);
+                }
             }
             else
             {
@@ -120,13 +131,8 @@ namespace PolygonEditor
             }
             edges.Add(edge);
             return edge;
-            //DrawLine(l.X, l.Y, r.X, r.Y,2);
         }
 
-        private void DrawLine(int x1, int y1, int x2, int y2, int size, Color? color = null)
-        {
-            (Application.Current.MainWindow as MainWindow).model.PolygonBitmap.DrawLine(x1, y1, x2, y2, size, color);
-        }
 
         public void Redraw()
         {
@@ -171,26 +177,6 @@ namespace PolygonEditor
             }
             balancePoint = new Point(x / vertices.Count, y / vertices.Count);
         }
-
-        //public void FillNeighbours()
-        //{
-        //    for(int i = 0; i < edges.Count; ++i)
-        //    {
-        //        int prev = i == 0 ? edges.Count - 1 : i - 1;
-        //        int next = i == edges.Count - 1 ? 0 : i + 1;
-
-        //        PolygonEdge edge = edges[i];
-        //        edge.leftVertex.neighbours.SameEdge = edge;
-        //        edge.leftVertex.neighbours.SameEdgeV = edge.rightVertex;
-        //        edge.leftVertex.neighbours.NextEdge = edges[prev];
-        //        edge.leftVertex.neighbours.NextEdgeV = edges[prev].leftVertex;
-
-        //        edge.rightVertex.neighbours.SameEdge = edge;
-        //        edge.rightVertex.neighbours.SameEdgeV = edge.leftVertex;
-        //        edge.rightVertex.neighbours.NextEdge = edges[next];
-        //        edge.rightVertex.neighbours.NextEdgeV = edges[next].rightVertex;
-        //    }
-        //}
 
         #region Property Changed
         public event PropertyChangedEventHandler PropertyChanged;

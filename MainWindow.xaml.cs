@@ -21,7 +21,7 @@ namespace PolygonEditor
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-
+        public DrawingObject objectToDraw;
         public readonly static Color backColor = Color.FromRgb(52, 52, 52);
         public MainViewModel model;
 
@@ -43,11 +43,23 @@ namespace PolygonEditor
             currentPolygon = new Polygon();
             polygons = new List<Polygon>();
             polygons.Add(currentPolygon);
+            objectToDraw = new BresenhamLineDrawing(); //new LibraryLineDrawing();
+            BresButt.IsEnabled = false;
+
             Loaded += (e, args) =>
             {
                 model.PolygonBitmap = CanvasExtender.CreateWritableBitmap((int)canvas.ActualWidth, (int)canvas.ActualHeight, backColor);
-                //model.PolygonBitmap.DrawLine(20, 50, 120, 150, Colors.White);
             };
+        }
+
+        public void DrawLine(int x1, int y1, int x2, int y2, int size, Color? color = null)
+        {
+            objectToDraw.DrawLine(model.PolygonBitmap, new Point(x1, y1),new Point(x2, y2), size, color);
+        }
+
+        public void DrawLine(Point from, Point to, int size, Color? color = null)
+        {
+            objectToDraw.DrawLine(model.PolygonBitmap, from, to, size, color);
         }
 
         private void canvas_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -74,10 +86,6 @@ namespace PolygonEditor
 
                 menu.Items.Add(item);
                 menu.IsOpen = true;
-                //canvas.Children.Add(menu);
-                //Canvas.SetTop(menu, point.Y);
-                //Canvas.SetLeft(menu, point.X);
-
             }
             else if (!(e.Source is VertexControl))
             {
@@ -86,6 +94,10 @@ namespace PolygonEditor
                     currentPolygon = new Polygon();
                     polygons.Add(currentPolygon);
                 }
+                else if(model.state != States.PolygonAdd)
+                {
+                    return;
+                }
 
                 model.state = States.PolygonAdd;
 
@@ -93,7 +105,7 @@ namespace PolygonEditor
                 currentPolygon.AddVertex(v);
                 e.Handled = true;
             }
-            else
+            else if(model.state == States.PolygonAdd)
             {
                 VertexControl vertex = e.Source as VertexControl;
                 if (model.state == States.PolygonAdd && vertex == currentPolygon.vertices.First().control)
@@ -105,8 +117,6 @@ namespace PolygonEditor
                     currentPolygon.isDone = true;
                     currentPolygon.CalculateBalancePoint();
                     model.state = States.Edit;
-                    //currentPolygon.FillNeighbours();
-                    //currentPolygon = null;
                     e.Handled = true;
                 }
             }
@@ -140,7 +150,7 @@ namespace PolygonEditor
 
             foreach (var pol in polygons)
             {
-                if (Math.Abs(point.X - pol.balancePoint.X) < 10 && Math.Abs(point.Y - pol.balancePoint.Y) < 10)
+                if (Math.Abs(point.X - pol.balancePoint.X) < 20 && Math.Abs(point.Y - pol.balancePoint.Y) < 20)
                 {
                     return pol;
                 }
@@ -150,12 +160,6 @@ namespace PolygonEditor
 
         private void canvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            //if (model.state == States.PolygonAdd)
-            //{
-            //    VertexDragData.movableObj = null;
-            //    return;
-            //}
-
             PolygonEdge edge = null;
             Polygon polygon = null;
             Point point = e.GetPosition(this.canvas);
@@ -221,8 +225,12 @@ namespace PolygonEditor
 
         private void RemovePolygon_Click(object sender, RoutedEventArgs args)
         {
-            if(currentPolygon != null)
+            if(model.state == States.Edit && currentPolygon != null)
             {
+                foreach(var e in currentPolygon.edges)
+                {
+                    e.RemoveVisualSymbolIfExists();
+                }
                 currentPolygon.edges.Clear();
                 foreach(var v in currentPolygon.vertices)
                 {
@@ -248,7 +256,7 @@ namespace PolygonEditor
 
         private void RedrawCanvas()
         {
-            model.PolygonBitmap = CanvasExtender.CreateWritableBitmap((int)canvas.ActualWidth, (int)canvas.ActualHeight, backColor);
+            model.PolygonBitmap = objectToDraw.Clear( model.PolygonBitmap, (int)canvas.ActualWidth, (int)canvas.ActualHeight, backColor);
             foreach (var polygon in polygons)
             {
                 polygon.Redraw();
@@ -268,9 +276,7 @@ namespace PolygonEditor
                     if (VertexDragData.movableObj is VertexControl)
                     {
                         Vertex v = (VertexDragData.movableObj as VertexControl).vertexOwner;
-                        //var vs = new List<Vertex>();
-                        //vs.Add(v);
-                        v.MoveVertex(/*v*/(Point)VertexDragData.to);
+                        v.MoveVertex((Point)VertexDragData.to);
                     }
                     else if (VertexDragData.movableObj is PolygonEdge)
                     {
@@ -291,8 +297,6 @@ namespace PolygonEditor
                             v.MoveVertex(v.Position + vec);
                         }
                     }
-                    //int count = 0;
-                    //v.neighbours.SameEdge.MoveVertex(v,(Point)VertexDragData.from, (Point)VertexDragData.to);
                     RedrawCanvas();
                 }
             }
@@ -308,16 +312,48 @@ namespace PolygonEditor
 
         public void RemoveVertex(Vertex v)
         {
+            if(model.state != States.Edit)
+            {
+                return;
+            }
+
             PolygonEdge e = new Edge(v.neighbours.prev, v.neighbours.next);
             var edgs = v.ownerPolygon.edges.Where(ee => ee.leftVertex == v || ee.rightVertex == v);
             int index = int.MaxValue;
             List<PolygonEdge> listEdgs = edgs.ToList();
-
+            List<PolygonEdge> ortsPairs = new List<PolygonEdge>();
 
             foreach (var edg in listEdgs)
             {
                 index = Math.Min(index, v.ownerPolygon.edges.IndexOf(edg));
                 v.ownerPolygon.edges.Remove(edg);
+                edg.RemoveRelationsIfExists(true);
+                if(edg is OrtogonalEdge)
+                {
+                    ortsPairs.Add((edg as OrtogonalEdge).pairedEdge);
+                }
+                //if (edg is OrtogonalEdge &&  (edg.leftVertex == (edg as OrtogonalEdge).pairedEdge.rightVertex 
+                //    || edg.rightVertex == (edg as OrtogonalEdge).pairedEdge.leftVertex))
+                //{
+                //    index = Math.Min(index, v.ownerPolygon.edges.IndexOf((edg as OrtogonalEdge).pairedEdge));
+                //    //v.ownerPolygon.edges.Remove((edg as OrtogonalEdge).pairedEdge);
+                //    edg.RemoveRelationsIfExists(true);
+                //    v.ownerPolygon.edges.Remove(edg);
+                //    v.ownerPolygon.edges.Remove((edg as OrtogonalEdge).pairedEdge);
+                //    break;
+                //}
+                //else
+                //{
+                //    edg.RemoveRelationsIfExists(false);
+                //}
+                //edg.RemoveVisualSymbolIfExists();
+            }
+            foreach(var edg in ortsPairs)
+            {
+                if(!listEdgs.Contains(edg))
+                {
+                    edg.RemoveRelationsIfExists(true);
+                }
             }
             v.ownerPolygon.edges.Insert(index, e);
             v.ownerPolygon.vertices.Remove(v);
@@ -335,16 +371,6 @@ namespace PolygonEditor
             RedrawCanvas();
         }
 
-        //public void AddVertexLeft(Vertex v)
-        //{
-        //    int index = v.ownerPolygon.vertices.IndexOf(v);
-        //}
-
-        //public void AddVertexRight(Vertex v)
-        //{
-        //    int index = v.ownerPolygon.vertices.IndexOf(v);
-        //}
-
         private void ButtonRemoveRelation_Click(object sender, RoutedEventArgs e)
         {
             if(model.state == States.Edit && currentPolygon != null)
@@ -352,8 +378,18 @@ namespace PolygonEditor
                 PolygonEdge edge = ((Button)sender).DataContext as PolygonEdge;
                 if(edge != null)
                 {
-                    currentPolygon.edgesWithRelation.Remove(edge);
-                    currentPolygon.ChangeEdges(edge, new Edge(edge.leftVertex, edge.rightVertex));
+                    edge.RemoveRelationsIfExists(false);
+                    //currentPolygon.edgesWithRelation.Remove(edge);
+                    //edge.RemoveVisualSymbolIfExists();
+                    //currentPolygon.ChangeEdges(edge, new Edge(edge.leftVertex, edge.rightVertex));
+
+                    //if (edge is OrtogonalEdge)
+                    //{
+                    //    PolygonEdge edg = (edge as OrtogonalEdge).pairedEdge;
+                    //    currentPolygon.edgesWithRelation.Remove(edg);
+                    //    edg.RemoveVisualSymbolIfExists();
+                    //    currentPolygon.ChangeEdges(edg, new Edge(edg.leftVertex, edg.rightVertex));
+                    //}
                 }
             }
         }
@@ -363,6 +399,30 @@ namespace PolygonEditor
             if(model.state == States.Edit)
             {
                 model.state = States.OrthogonalOne;
+            }
+        }
+
+        private void BresButt_Click(object sender, RoutedEventArgs e)
+        {
+            if (model.state == States.Edit)
+            {
+                model.PolygonBitmap = objectToDraw.Clear(model.PolygonBitmap, (int)canvas.ActualWidth, (int)canvas.ActualHeight, backColor);
+                objectToDraw = new BresenhamLineDrawing();
+                RedrawCanvas();
+                LibButt.IsEnabled = true;
+                BresButt.IsEnabled = false;
+            }
+        }
+
+        private void LibButt_Click(object sender, RoutedEventArgs e)
+        {
+            if (model.state == States.Edit)
+            {
+                model.PolygonBitmap = objectToDraw.Clear(model.PolygonBitmap, (int)canvas.ActualWidth, (int)canvas.ActualHeight, backColor);
+                objectToDraw = new LibraryLineDrawing();
+                RedrawCanvas();
+                BresButt.IsEnabled = true;
+                LibButt.IsEnabled = false;
             }
         }
 

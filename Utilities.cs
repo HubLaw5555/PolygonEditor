@@ -289,19 +289,18 @@ namespace PolygonEditor
             }
         }
 
-        public static Stack<Point> DrawLine(this WriteableBitmap bitmap, Point from, Point to, int size, Color? color = null)
+        public static void DrawLine(this WriteableBitmap bitmap, Point from, Point to, int size, Color? color = null)
         {
-            return bitmap.DrawLine((int)from.X, (int)from.Y, (int)to.X, (int)to.Y, size, color);
+            bitmap.DrawLine((int)from.X, (int)from.Y, (int)to.X, (int)to.Y, size, color);
         }
 
-        public static Stack<Point> DrawLine(this WriteableBitmap bitmap, int x1, int y1, int x2, int y2, int size, Color? color = null)
+        public static void DrawLine(this WriteableBitmap bitmap, int x1, int y1, int x2, int y2, int size, Color? color = null)
         {
             if(color == null)
             {
                 color = Colors.White;
             }
             Color c = (Color)color;
-            Stack<Point> stack = new Stack<Point>();
 
             // zmienne pomocnicze
             int d, dx, dy, ai, bi, xi, yi;
@@ -330,15 +329,6 @@ namespace PolygonEditor
             }
             // pierwszy piksel
             bitmap.DrawRect(x, y, size, size, c);
-            //stack.Push(new Point(x,y));
-
-            for (int i = 0; i < size; ++i)
-            {
-                for (int j = 0; j < size; ++j)
-                {
-                    stack.Push(new Point(x + i, y + j));
-                }
-            }
 
             // oś wiodąca OX
             if (dx > dy)
@@ -362,14 +352,6 @@ namespace PolygonEditor
                         x += xi;
                     }
                     bitmap.DrawRect(x, y, size, size, c);
-
-                    for (int i = 0; i < size; ++i)
-                    {
-                        for (int j = 0; j < size; ++j)
-                        {
-                            stack.Push(new Point(x + i, y + j));
-                        }
-                    }
                 }
             }
             // oś wiodąca OY
@@ -394,18 +376,8 @@ namespace PolygonEditor
                         y += yi;
                     }
                     bitmap.DrawRect(x, y, size, size, c);
-
-                    for (int i = 0; i < size; ++i)
-                    {
-                        for (int j = 0; j < size; ++j)
-                        {
-                            stack.Push(new Point(x + i, y + j));
-                        }
-                    }
                 }
             }
-
-            return stack;
         }
     }
 
@@ -437,7 +409,6 @@ namespace PolygonEditor
             int y1 = int.Parse(values[4].ToString());
             int y2 = int.Parse(values[5].ToString());
             string len = string.Format("{0:00.##}", Math.Sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
-            //string len = string.Format("{0:0.##}", Math.Sqrt(Math.Pow((l.X - r.X), 2) + Math.Pow((l.Y - r.Y), 2)));
             return $"|{l} {r}| =  {len}";
         }
 
@@ -454,7 +425,7 @@ namespace PolygonEditor
             PolygonEdge edge = (PolygonEdge)values[0];
             if (edge is Edge) return null;
 
-            string communicat = edge is FixedLenghtEdge ? "FIXED LENGTH" : "ORTHOGONAL";
+            string communicat = edge is FixedLenghtEdge ? "FIX_L" : $"ORTH {(edge as OrtogonalEdge).UniqueNr}";
 
             return $"|{edge.leftVertex.VertexText}  {edge.rightVertex.VertexText}|   " + communicat;
         }

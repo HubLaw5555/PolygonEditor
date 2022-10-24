@@ -25,7 +25,7 @@
                 <TabControl DockPanel.Dock="Top" DataContext="{Binding ElementName=mainWindow, Path=currentPolygon}">
                     <TabItem Header="Wierzchołki">
                         <ListView ItemsSource="{Binding vertices, UpdateSourceTrigger=PropertyChanged}"
-                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                                  IsSynchronizedWithCurrentItem="True" Height="200" >
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock>
@@ -43,7 +43,7 @@
                     </TabItem>
                     <TabItem Header="Krawędzie">
                         <ListView ItemsSource="{Binding edges, UpdateSourceTrigger=PropertyChanged}"
-                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                                  IsSynchronizedWithCurrentItem="True" Height="200" >
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock>
@@ -66,7 +66,7 @@
                         <StackPanel>
 
                             <ListView ItemsSource="{Binding edgesWithRelation, UpdateSourceTrigger=PropertyChanged}"
-                                  IsSynchronizedWithCurrentItem="True" MaxHeight="400" >
+                                  IsSynchronizedWithCurrentItem="True" Height="200" >
                                 <ListView.View>
                                     <GridView ColumnHeaderContainerStyle="{StaticResource myHeaderStyle}">
                                         <GridViewColumn Width="140">
@@ -103,20 +103,24 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>-->
                             </ListView>
-                            <DockPanel LastChildFill="False" Margin="2,10,2,0">
+                            <!--<DockPanel LastChildFill="False" Margin="2,10,2,0">
                                 <Button>Dodaj relacje ORTH:</Button>
                                 <TextBox Name="TextVertex4" DockPanel.Dock="Right" Width="17"/>
                                 <TextBox Name="TextVertex3" DockPanel.Dock="Right" Width="17" />
                                 <TextBlock Margin="5,0,5,0" DockPanel.Dock="Right">,</TextBlock>
                                 <TextBox Name="TextVertex2" DockPanel.Dock="Right" Width="17"/>
                                 <TextBox Name="TextVertex1" DockPanel.Dock="Right" Width="17"/>
-                            </DockPanel>
+                            </DockPanel>-->
                         </StackPanel>
                     </TabItem>
                 </TabControl>
                 <DockPanel DockPanel.Dock="Top" Margin="10,20,10,0">
                     <Button DockPanel.Dock="Top" Click="RemovePolygon_Click">Usuń wielokąt</Button>
-                    <Button DockPanel.Dock="Top" Click="OrthogonalStart_Click" Margin="0,5,0,0" >Dodaj relacje ORTH</Button>
+                    <Button DockPanel.Dock="Top" Click="OrthogonalStart_Click" Margin="0,5,0,5" >Dodaj relacje ORTH</Button>
+                    <DockPanel DockPanel.Dock="Top">
+                        <Button Name="BresButt" Click="BresButt_Click" DockPanel.Dock="Left" Margin="0,0,13,0" Width="90">Bresenham</Button>
+                        <Button Name="LibButt"  Click="LibButt_Click" DockPanel.Dock="Right" Width="90">Library</Button>
+                    </DockPanel>
                 </DockPanel>
                 <DockPanel DockPanel.Dock="Bottom" LastChildFill="False" Margin="0,0,0,30">
                     <TextBlock TextAlignment="Center" DockPanel.Dock="Bottom" Text="{Binding ActualState, Mode=TwoWay}" Foreground="Black"/>
